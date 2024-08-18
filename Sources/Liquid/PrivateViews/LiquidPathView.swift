@@ -38,6 +38,9 @@ struct LiquidPathView: View {
                 self.x = AnimatableArray(points.map { self.pointCloud.x[$0] })
                 self.y = AnimatableArray(points.map { self.pointCloud.y[$0] })
             }
+            Task.delayed(by: .seconds(period)) { @MainActor in
+                self.generate()
+            }
         }
     }
 
