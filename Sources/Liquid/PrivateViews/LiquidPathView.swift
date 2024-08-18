@@ -6,11 +6,9 @@
 //
 
 import SwiftUI
-import Combine
 import Accelerate
 
 struct LiquidPathView: View {
-
     let pointCloud: (x: [Double], y: [Double])
     @State var x: AnimatableArray = .zero
     @State var y: AnimatableArray = .zero
