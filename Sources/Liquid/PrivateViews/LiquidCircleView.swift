@@ -6,13 +6,10 @@
 //
 
 import SwiftUI
-import Combine
 
 struct LiquidCircleView: View {
     @State var samples: Int
     @State var radians: AnimatableArray
-    @State var trigger: Timer.TimerPublisher?
-    @State var cancellable: Cancellable?
     let period: TimeInterval
 
     init(samples: Int, period: TimeInterval) {
@@ -24,10 +21,7 @@ struct LiquidCircleView: View {
     var body: some View {
         LiquidCircle(radians: radians)
             .onAppear {
-                startTimer()
-            }
-            .onDisappear {
-                stopTimer()
+                animatedRadianUpdate()
             }
     }
 
@@ -44,30 +38,20 @@ struct LiquidCircleView: View {
         return radians
     }
 
-    private func startTimer() {
-        guard cancellable == nil else { return }
-
-        // Get the animation started immediately by updating the radians.
-        DispatchQueue.main.asyncAfter(deadline: .now()) {
-            animatedRadianUpdate()
-        }
-
-        // Periodically update the radians to continue the animation.
-        cancellable = Timer.publish(every: period, on: .main, in: .common)
-            .autoconnect()
-            .sink { _ in
-                animatedRadianUpdate()
+    func animatedRadianUpdate() {
+        if #available(iOS 17.0, *) {
+            withAnimation(.linear(duration: period)) {
+                radians = AnimatableArray(LiquidCircleView.generateRadial(samples))
+            } completion: {
+                self.animatedRadianUpdate()
             }
-
-        func animatedRadianUpdate() {
+        } else {
             withAnimation(.linear(duration: period)) {
                 radians = AnimatableArray(LiquidCircleView.generateRadial(samples))
             }
+            Task.delayed(by: .seconds(period)) { @MainActor in
+                self.animatedRadianUpdate()
+            }
         }
-    }
-
-    private func stopTimer() {
-        cancellable?.cancel()
-        cancellable = nil
     }
 }
