@@ -10,12 +10,14 @@ import SwiftUI
 struct LiquidCircleView: View {
     @State var samples: Int
     @State var radians: AnimatableArray
+    @State var animate: Bool
     let period: TimeInterval
 
-    init(samples: Int, period: TimeInterval) {
+    init(samples: Int, period: TimeInterval, animate: Bool) {
         self._samples = .init(initialValue: samples)
         self._radians = .init(initialValue: AnimatableArray(LiquidCircleView.generateRadial(samples)))
         self.period = period
+        self._animate = .init(initialValue: animate)
     }
 
     var body: some View {
@@ -23,10 +25,12 @@ struct LiquidCircleView: View {
             .onAppear {
                 animatedRadianUpdate()
             }
+            .onDisappear {
+                animate = false
+            }
     }
 
     static func generateRadial(_ count: Int = 6) -> [Double] {
-
         var radians: [Double] = []
         let offset = Double.random(in: 0...(.pi / Double(count)))
         for i in 0..<count {
@@ -39,6 +43,8 @@ struct LiquidCircleView: View {
     }
 
     func animatedRadianUpdate() {
+        guard animate else { return }
+        
         if #available(iOS 17.0, *) {
             withAnimation(.linear(duration: period)) {
                 radians = AnimatableArray(LiquidCircleView.generateRadial(samples))

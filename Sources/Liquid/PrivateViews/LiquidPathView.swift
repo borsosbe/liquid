@@ -13,15 +13,19 @@ struct LiquidPathView: View {
     @State var x: AnimatableArray = .zero
     @State var y: AnimatableArray = .zero
     @State var samples: Int
+    @State var animate: Bool
     let period: TimeInterval
 
-    init(path: CGPath, interpolate: Int, samples: Int, period: TimeInterval) {
+    init(path: CGPath, interpolate: Int, samples: Int, period: TimeInterval, animate: Bool) {
         self._samples = .init(initialValue: samples)
         self.period = period
         self.pointCloud = path.getPoints().interpolate(interpolate)
+        self._animate = .init(initialValue: animate)
     }
 
     func generate() {
+        guard animate else { return }
+        
         if #available(iOS 17.0, *) {
             withAnimation(.linear(duration: period)) {
                 let points = Array(0..<pointCloud.x.count).randomElements(samples)
@@ -46,6 +50,9 @@ struct LiquidPathView: View {
         LiquidPath(x: x, y: y)
             .onAppear {
                 self.generate()
+            }
+            .onDisappear {
+                animate = false
             }
     }
 }
